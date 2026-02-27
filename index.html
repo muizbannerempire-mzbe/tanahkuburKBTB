@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penjana Resit Wakaf Kg Baru Batu Tumbuh</title>
+    <!-- Taildwind CSS untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- html2canvas untuk fungsi muat turun gambar -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Font Awesome untuk ikon -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .bg-custom {
+            /* Latar belakang menggunakan gambar poster dengan lapisan gelap hijau */
+            background-image: linear-gradient(rgba(10, 40, 20, 0.8), rgba(10, 40, 20, 0.8)), url('image_450477.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+<body class="bg-custom min-h-screen p-4 flex items-center justify-center">
+
+    <!-- TOAST NOTIFICATION (Sistem Mesej Timbul) -->
+    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 -translate-y-20 z-[100] transition-all duration-300 opacity-0 pointer-events-none w-[90%] max-w-md">
+        <div id="toastContent" class="bg-gray-800 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center text-sm font-medium border-l-4 border-blue-500">
+            <i id="toastIcon" class="fas fa-info-circle mr-3 text-lg"></i>
+            <span id="toastMsg" class="leading-tight">Mesej</span>
+        </div>
+    </div>
+
+    <!-- MODAL ADMIN LOGIN -->
+    <div id="adminModal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl p-6 w-[90%] max-w-sm shadow-2xl transform scale-95 transition-transform duration-300" id="adminModalContent">
+            <div class="text-center mb-5">
+                <div class="inline-block bg-gray-100 p-3 rounded-full mb-2">
+                    <i class="fas fa-lock text-2xl text-gray-700"></i>
+                </div>
+                <h3 class="font-bold text-xl text-gray-800">Panel Admin</h3>
+                <p class="text-xs text-gray-500 mt-1">Sila masukkan kata laluan untuk akses.</p>
+            </div>
+            <input type="password" id="adminPassword" class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 mb-5 bg-gray-50 text-center text-lg tracking-widest" placeholder="••••••••">
+            <p class="text-[10px] text-center text-gray-400 mb-4 -mt-2">Petunjuk: admin123</p>
+            <div class="flex space-x-3">
+                <button onclick="closeAdminLogin()" class="w-1/2 py-3 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 font-semibold transition">Batal</button>
+                <button onclick="submitAdminLogin()" class="w-1/2 py-3 bg-green-700 text-white rounded-xl hover:bg-green-800 font-semibold shadow-md transition">Masuk</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PENGESAHAN PADAM (DELETE) -->
+    <div id="deleteModal" class="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl p-6 w-[90%] max-w-sm shadow-2xl transform scale-95 transition-transform duration-300" id="deleteModalContent">
+            <div class="text-center mb-5">
+                <div class="inline-block bg-red-100 p-3 rounded-full mb-2">
+                    <i class="fas fa-exclamation-triangle text-2xl text-red-600"></i>
+                </div>
+                <h3 class="font-bold text-xl text-gray-800">Padam Rekod?</h3>
+                <p class="text-sm text-gray-500 mt-2">Adakah anda pasti mahu memadam rekod sumbangan ini? Tindakan ini tidak boleh diundur.</p>
+            </div>
+            <div class="flex space-x-3">
+                <button onclick="closeDeleteModal()" class="w-1/2 py-3 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 font-semibold transition">Batal</button>
+                <button onclick="executeDelete()" class="w-1/2 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 font-semibold shadow-md transition">Ya, Padam</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BEKAS UTAMA APLIKASI -->
+    <div id="mainContainer" class="max-w-md w-full mx-auto transition-all duration-300 relative z-10">
+        
+        <!-- AMARAN MOD LUAR TALIAN -->
+        <div id="offlineWarningBanner" class="hidden mb-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-3 rounded shadow-md text-xs leading-relaxed">
+            <i class="fas fa-exclamation-triangle mr-1"></i> <strong>Mod Luar Talian Aktif:</strong> Pangkalan data belum dikonfigurasi sepenuhnya (Sila aktifkan <em>Anonymous Auth</em> di Firebase). Rekod hanya disimpan sementara.
+        </div>
+
+        <!-- SECTION BORANG (FORM) -->
+        <div id="formSection" class="bg-white rounded-2xl shadow-xl overflow-hidden border border-green-100">
+            <div class="bg-green-800 p-6 text-center">
+                <h1 class="text-lg font-bold text-yellow-400 leading-tight">Dana Pembelian Tanah Wakaf<br>dan Pengurusan Kubur</h1>
+                <p class="text-green-100 text-sm mt-2">Kampung Baru Batu Tumbuh</p>
+            </div>
+            
+            <div class="p-6">
+                <form id="receiptForm" onsubmit="generateReceipt(event)">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
+                            <i class="fas fa-user mr-2 text-green-700"></i>Nama Penderma
+                        </label>
+                        <input type="text" id="name" required
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                            placeholder="Contoh: Ahmad bin Abu">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="phone">
+                            <i class="fas fa-phone mr-2 text-green-700"></i>No. Telefon Penderma
+                        </label>
+                        <input type="tel" id="phone" required
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                            placeholder="Contoh: 0123456789">
+                        <p class="text-xs text-gray-500 mt-1">Nombor ini akan digunakan untuk hantar WhatsApp.</p>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="amount">
+                            <i class="fas fa-money-bill-wave mr-2 text-green-700"></i>Jumlah Sumbangan (RM)
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2 text-gray-500 font-semibold">RM</span>
+                            <input type="number" id="amount" step="0.01" min="1" required
+                                class="w-full pl-10 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <button type="submit" 
+                        class="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 flex justify-center items-center">
+                        <i class="fas fa-file-invoice mr-2"></i> Jana Resit
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- SECTION RESIT (DIPAPARKAN SELEPAS JANA) -->
+        <div id="receiptSection" class="hidden">
+            <!-- Kawasan Resit untuk di-screenshot/download -->
+            <div id="receiptCard" class="bg-white rounded-lg shadow-2xl overflow-hidden border-2 border-green-800 relative">
+                <!-- Watermark Logo / Background Icon -->
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-5 pointer-events-none">
+                    <i class="fas fa-mosque text-9xl"></i>
+                </div>
+
+                <!-- Header Resit -->
+                <div class="bg-green-800 text-center p-5 border-b-4 border-yellow-500">
+                    <h2 class="text-lg font-bold text-yellow-400 uppercase leading-tight">Dana Pembelian Tanah Wakaf<br>dan Pengurusan Kubur</h2>
+                    <h3 class="text-sm font-semibold text-white mt-2">Kampung Baru Batu Tumbuh</h3>
+                </div>
+
+                <!-- Body Resit -->
+                <div class="p-6 relative z-10">
+                    <div class="text-center mb-6">
+                        <span class="inline-block bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">
+                            Resit Rasmi
+                        </span>
+                    </div>
+
+                    <div class="flex justify-between items-center border-b border-gray-200 pb-3 mb-3">
+                        <span class="text-sm text-gray-500">No. Resit:</span>
+                        <span class="font-bold text-gray-800" id="displayRefNo">WKF-123456</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center border-b border-gray-200 pb-3 mb-3">
+                        <span class="text-sm text-gray-500">Tarikh & Masa:</span>
+                        <span class="font-bold text-gray-800 text-sm" id="displayDate">01/01/2024 10:00 AM</span>
+                    </div>
+
+                    <div class="flex justify-between items-center border-b border-gray-200 pb-3 mb-3">
+                        <span class="text-sm text-gray-500">Nama Penderma:</span>
+                        <span class="font-bold text-gray-800 text-right w-2/3" id="displayName">Ahmad bin Abu</span>
+                    </div>
+
+                    <div class="flex justify-between items-center border-b border-gray-200 pb-3 mb-6">
+                        <span class="text-sm text-gray-500">No. Telefon:</span>
+                        <span class="font-bold text-gray-800" id="displayPhone">0123456789</span>
+                    </div>
+
+                    <div class="bg-green-50 rounded-lg p-4 text-center">
+                        <span class="block text-sm text-gray-600 mb-1">Jumlah Diterima</span>
+                        <span class="text-3xl font-bold text-green-800" id="displayAmount">RM 50.00</span>
+                    </div>
+
+                    <!-- Footer Resit -->
+                    <div class="mt-6 text-center">
+                        <p class="text-xs text-gray-500 italic">"Semoga Allah Membalas Jasa Baik Anda"</p>
+                        <p class="text-[10px] text-gray-400 mt-2">Resit ini dijana secara berkomputer. Tiada tandatangan diperlukan.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tindakan (Buttons) -->
+            <div class="mt-6 space-y-3">
+                <button onclick="sendWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#1ebd5a] text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 flex justify-center items-center">
+                    <i class="fab fa-whatsapp text-xl mr-2"></i> Hantar ke WhatsApp Penderma
+                </button>
+
+                <div class="flex space-x-3">
+                    <button onclick="downloadImage()" class="w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 flex justify-center items-center text-sm">
+                        <i class="fas fa-download mr-2"></i> Muat Turun Gambar
+                    </button>
+                    <button onclick="resetForm()" class="w-1/2 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 flex justify-center items-center text-sm">
+                        <i class="fas fa-plus-circle mr-2"></i> Resit Baru
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER / CREDIT -->
+        <div class="mt-8 text-center text-xs text-white opacity-90 tracking-wide font-medium drop-shadow-md">
+            Powered by <br>
+            <span class="font-bold text-yellow-400 text-sm">Muiz Banner Empire</span>
+            
+            <div class="mt-4">
+                <button onclick="openAdminLogin()" class="text-white/60 hover:text-white hover:underline transition text-[11px]"><i class="fas fa-lock mr-1"></i> Panel Admin</button>
+            </div>
+        </div>
+
+        <!-- SECTION ADMIN (DIPAPARKAN BILA KLIK PANEL ADMIN) -->
+        <div id="adminSection" class="hidden bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 mt-4 relative z-10">
+            <div class="bg-gray-800 p-5 flex justify-between items-center">
+                <h1 class="text-lg font-bold text-white"><i class="fas fa-user-shield text-yellow-400 mr-2"></i>Rekod Sumbangan</h1>
+                <button onclick="closeAdmin()" class="text-gray-400 hover:text-white transition"><i class="fas fa-times text-2xl"></i></button>
+            </div>
+            <div class="p-6 overflow-x-auto">
+                <div class="flex flex-col md:flex-row justify-between md:items-end mb-4 bg-gray-50 p-4 rounded-lg border gap-4">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Jumlah Kutipan Terkumpul</p>
+                        <p class="text-3xl font-bold text-green-700" id="adminTotalAmount">RM 0.00</p>
+                    </div>
+                    <div class="md:text-right">
+                        <p class="text-sm text-gray-500 mb-1">Jumlah Transaksi</p>
+                        <p class="text-xl font-bold text-gray-800" id="adminTotalCount">0</p>
+                    </div>
+                </div>
+                
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-5" id="offlineAdminWarning" style="display: none;">
+                    <p class="text-xs text-yellow-800 leading-relaxed">
+                        <i class="fas fa-exclamation-triangle mr-1"></i><strong>Mod Luar Talian:</strong> Firebase Auth belum diaktifkan. Data ini hanya disimpan sementara dan akan hilang jika anda memuat semula (<em>refresh</em>) halaman ini.
+                    </p>
+                </div>
+
+                <div class="min-w-[600px]"> <!-- Untuk scroll di telefon bimbit -->
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-green-100 text-green-800 border-b-2 border-green-200">
+                                <th class="p-3 rounded-tl-lg">No. Resit</th>
+                                <th class="p-3">Tarikh</th>
+                                <th class="p-3">Nama</th>
+                                <th class="p-3">No. Telefon</th>
+                                <th class="p-3 text-right">Jumlah (RM)</th>
+                                <th class="p-3 text-center rounded-tr-lg">Tindakan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTableBody">
+                            <!-- Data dijana di sini secara dinamik -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="emptyDataMsg" class="text-center py-10 text-gray-400 hidden">
+                    <i class="fas fa-folder-open text-4xl mb-3 opacity-30"></i><br>
+                    Tiada rekod sumbangan dimasukkan setakat ini.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SCRIPT UTAMA & FIREBASE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Konfigurasi Firebase Anda
+        const firebaseConfig = {
+            apiKey: "AIzaSyDnfe1OK_P5oG0aUqz0n8BqtgYo4ALfK-8",
+            authDomain: "dana-tanah-kubur.firebaseapp.com",
+            projectId: "dana-tanah-kubur",
+            storageBucket: "dana-tanah-kubur.firebasestorage.app",
+            messagingSenderId: "993200619810",
+            appId: "1:993200619810:web:27a570326d8a21fad6e57b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const customAppId = "dana-tanah-kubur";
+
+        let currentUser = null;
+        let receiptsData = []; 
+        let isOfflineMode = false; // Fallback jika auth Firebase belum sedia
+        let recordToDeleteId = null; // Menyimpan ID rekod yang ingin dipadam
+
+        // --- SISTEM NOTIFIKASI (TOAST) ---
+        window.showToast = function(message, type = "info") {
+            const toast = document.getElementById('toast');
+            const toastContent = document.getElementById('toastContent');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.textContent = message;
+            
+            if (type === "error") {
+                toastContent.className = "bg-red-600 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center text-sm font-medium border-l-4 border-red-800";
+                toastIcon.className = "fas fa-exclamation-triangle mr-3 text-lg";
+            } else if (type === "success") {
+                toastContent.className = "bg-green-600 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center text-sm font-medium border-l-4 border-green-800";
+                toastIcon.className = "fas fa-check-circle mr-3 text-lg";
+            } else if (type === "warning") {
+                toastContent.className = "bg-yellow-500 text-yellow-900 px-6 py-3 rounded-xl shadow-2xl flex items-center text-sm font-medium border-l-4 border-yellow-800";
+                toastIcon.className = "fas fa-exclamation-circle mr-3 text-lg";
+            } else {
+                toastContent.className = "bg-gray-800 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center text-sm font-medium border-l-4 border-gray-900";
+                toastIcon.className = "fas fa-info-circle mr-3 text-lg";
+            }
+
+            toast.classList.remove('-translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-20', 'opacity-0');
+            }, 5000); 
+        }
+
+        // 1. Fungsi pengesahan (Auth Firebase)
+        async function initAuth() {
+            try {
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.warn("Ralat Auth Firebase dikesan. Beralih ke Mod Luar Talian.", error);
+                isOfflineMode = true;
+                document.getElementById('offlineWarningBanner').classList.remove('hidden');
+                document.getElementById('offlineAdminWarning').style.display = 'block';
+                
+                if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
+                    window.showToast("Firebase: Sila aktifkan 'Anonymous' Sign-in provider di konsol Firebase anda.", "warning");
+                } else {
+                    window.showToast("Gagal menyambung ke pangkalan data. Beralih ke memori sementara.", "warning");
+                }
+            }
+        }
+        
+        initAuth();
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                isOfflineMode = false;
+                document.getElementById('offlineWarningBanner').classList.add('hidden');
+                document.getElementById('offlineAdminWarning').style.display = 'none';
+                setupRealtimeListener(); 
+            } else {
+                currentUser = null;
+            }
+        });
+
+        // 2. Fungsi Tarik Data Terkini dari awan (Real-time listener)
+        function setupRealtimeListener() {
+            if (!currentUser || isOfflineMode) return;
+            
+            const colRef = collection(db, 'artifacts', customAppId, 'public', 'data', 'receipts');
+            
+            onSnapshot(colRef, (snapshot) => {
+                receiptsData = [];
+                snapshot.forEach(doc => {
+                    receiptsData.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Susun ikut tarikh paling baru
+                receiptsData.sort((a, b) => b.timestamp - a.timestamp);
+                
+                // Kemaskini jadual jika Admin sedang buka
+                const adminSection = document.getElementById('adminSection');
+                if (adminSection && !adminSection.classList.contains('hidden')) {
+                    window.renderAdminTable();
+                }
+            }, (error) => {
+                console.error("Ralat ambil data:", error);
+            });
+        }
+
+        // --- Fungsi Asas Sistem ---
+        window.formatDate = function(date) {
+            const options = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true };
+            return date.toLocaleString('ms-MY', options);
+        }
+
+        window.generateRefNo = function() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const random = Math.floor(1000 + Math.random() * 9000); 
+            return `WKF-${year}${month}${day}-${random}`;
+        }
+
+        // Fungsi utama jana dan SIMPAN resit ke Firebase / Local
+        window.generateReceipt = async function(event) {
+            event.preventDefault();
+
+            if (!currentUser && !isOfflineMode) {
+                window.showToast("Sedang menyambung ke pelayan. Sila tunggu sebentar...", "info");
+                return;
+            }
+
+            const btn = event.target.querySelector('button[type="submit"]');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan...';
+            btn.disabled = true;
+
+            try {
+                const name = document.getElementById('name').value;
+                const phone = document.getElementById('phone').value;
+                const amount = parseFloat(document.getElementById('amount').value).toFixed(2);
+                
+                const refNo = window.generateRefNo();
+                const currentDate = window.formatDate(new Date());
+                const timestamp = Date.now();
+
+                if (isOfflineMode) {
+                    // Simpan dalam memori jika Firebase tidak aktif
+                    receiptsData.unshift({
+                        id: 'local_' + timestamp,
+                        refNo: refNo,
+                        date: currentDate,
+                        name: name,
+                        phone: phone,
+                        amount: amount,
+                        timestamp: timestamp
+                    });
+                    window.showToast("Resit berjaya dijana (Disimpan Sementara).", "success");
+                } else {
+                    // Simpan rekod ke Firestore
+                    const colRef = collection(db, 'artifacts', customAppId, 'public', 'data', 'receipts');
+                    await addDoc(colRef, {
+                        refNo: refNo,
+                        date: currentDate,
+                        name: name,
+                        phone: phone,
+                        amount: amount,
+                        timestamp: timestamp
+                    });
+                    window.showToast("Resit berjaya disimpan ke pangkalan data awan!", "success");
+                }
+
+                // Paparan Resit
+                document.getElementById('displayRefNo').textContent = refNo;
+                document.getElementById('displayDate').textContent = currentDate;
+                document.getElementById('displayName').textContent = name;
+                document.getElementById('displayPhone').textContent = phone;
+                document.getElementById('displayAmount').textContent = 'RM ' + amount;
+
+                document.getElementById('formSection').classList.add('hidden');
+                document.getElementById('receiptSection').classList.remove('hidden');
+            } catch (error) {
+                console.error("Ralat menyimpan resit:", error);
+                window.showToast("Maaf, ralat berlaku semasa memproses resit.", "error");
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        }
+
+        window.sendWhatsApp = function() {
+            const name = document.getElementById('displayName').textContent;
+            let phone = document.getElementById('displayPhone').textContent;
+            const amount = document.getElementById('displayAmount').textContent;
+            const refNo = document.getElementById('displayRefNo').textContent;
+            const date = document.getElementById('displayDate').textContent;
+
+            phone = phone.replace(/\s+/g, '');
+            if (phone.startsWith('0')) {
+                phone = '6' + phone;
+            } else if (!phone.startsWith('6')) {
+                phone = '60' + phone; 
+            }
+
+            const message = `*RESIT SUMBANGAN RASMI*\nDana Pembelian Tanah Wakaf dan Pengurusan Kubur\nKampung Baru Batu Tumbuh\n\n` +
+                            `No. Resit: *${refNo}*\n` +
+                            `Tarikh: ${date}\n\n` +
+                            `Nama: ${name}\n` +
+                            `Jumlah: *${amount}*\n\n` +
+                            `Alhamdulillah, sumbangan tuan/puan ke akaun Bank Muamalat (13030001512718 - Wakaf Tanah Perkuburan) telah selamat diterima.\n\n` +
+                            `_Semoga Allah membalas jasa baik anda._`;
+
+            const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            window.open(waUrl, '_blank');
+        }
+
+        window.downloadImage = function() {
+            const receiptCard = document.getElementById('receiptCard');
+            const refNo = document.getElementById('displayRefNo').textContent;
+            
+            html2canvas(receiptCard, {
+                scale: 2,
+                backgroundColor: "#ffffff"
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Resit_Wakaf_${refNo}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        window.resetForm = function() {
+            document.getElementById('receiptForm').reset();
+            document.getElementById('receiptSection').classList.add('hidden');
+            document.getElementById('formSection').classList.remove('hidden');
+            document.getElementById('name').focus();
+        }
+
+        // --- PENGURUSAN ADMIN (MODAL) ---
+        window.openAdminLogin = function() {
+            const modal = document.getElementById('adminModal');
+            const content = document.getElementById('adminModalContent');
+            document.getElementById('adminPassword').value = '';
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+            document.getElementById('adminPassword').focus();
+        }
+
+        window.closeAdminLogin = function() {
+            const modal = document.getElementById('adminModal');
+            const content = document.getElementById('adminModalContent');
+            
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        window.submitAdminLogin = function() {
+            const pw = document.getElementById('adminPassword').value;
+            if (pw === "admin123") {
+                window.closeAdminLogin();
+                
+                document.getElementById('formSection').classList.add('hidden');
+                document.getElementById('receiptSection').classList.add('hidden');
+                document.getElementById('mainContainer').classList.remove('max-w-md');
+                document.getElementById('mainContainer').classList.add('max-w-4xl');
+                document.getElementById('adminSection').classList.remove('hidden');
+                
+                window.renderAdminTable();
+            } else {
+                window.showToast("Kata laluan salah. Sila cuba lagi.", "error");
+            }
+        }
+
+        document.getElementById('adminPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                window.submitAdminLogin();
+            }
+        });
+
+        window.closeAdmin = function() {
+            document.getElementById('adminSection').classList.add('hidden');
+            document.getElementById('mainContainer').classList.remove('max-w-4xl');
+            document.getElementById('mainContainer').classList.add('max-w-md');
+            document.getElementById('formSection').classList.remove('hidden');
+        }
+
+        // --- FUNGSI PADAM REKOD ---
+        window.confirmDelete = function(id) {
+            recordToDeleteId = id;
+            const modal = document.getElementById('deleteModal');
+            const content = document.getElementById('deleteModalContent');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        window.closeDeleteModal = function() {
+            const modal = document.getElementById('deleteModal');
+            const content = document.getElementById('deleteModalContent');
+            
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                recordToDeleteId = null;
+            }, 300);
+        }
+
+        window.executeDelete = async function() {
+            if (!recordToDeleteId) return;
+            
+            try {
+                if (recordToDeleteId.startsWith('local_')) {
+                    receiptsData = receiptsData.filter(item => item.id !== recordToDeleteId);
+                    window.renderAdminTable();
+                    window.showToast("Rekod berjaya dipadam (Lokal).", "success");
+                } else {
+                    const docRef = doc(db, 'artifacts', customAppId, 'public', 'data', 'receipts', recordToDeleteId);
+                    await deleteDoc(docRef);
+                    window.showToast("Rekod berjaya dipadam dari awan.", "success");
+                }
+            } catch (error) {
+                console.error("Ralat memadam rekod:", error);
+                window.showToast("Gagal memadam rekod.", "error");
+            } finally {
+                window.closeDeleteModal();
+            }
+        }
+
+        // Susun jadual data Admin
+        window.renderAdminTable = function() {
+            const tbody = document.getElementById('adminTableBody');
+            const emptyMsg = document.getElementById('emptyDataMsg');
+            let totalAmount = 0;
+            
+            tbody.innerHTML = ''; 
+
+            if (receiptsData.length === 0) {
+                emptyMsg.classList.remove('hidden');
+            } else {
+                emptyMsg.classList.add('hidden');
+                
+                receiptsData.forEach(data => {
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b hover:bg-gray-50 transition-colors";
+                    tr.innerHTML = `
+                        <td class="p-3 font-mono text-xs text-gray-600">${data.refNo}</td>
+                        <td class="p-3 text-xs text-gray-500">${data.date}</td>
+                        <td class="p-3 font-semibold text-gray-800">${data.name}</td>
+                        <td class="p-3 text-gray-600">${data.phone}</td>
+                        <td class="p-3 text-right font-bold text-green-700">RM ${data.amount}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="confirmDelete('${data.id}')" class="text-red-400 hover:text-red-600 transition p-2 bg-red-50 hover:bg-red-100 rounded-lg" title="Padam Rekod">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                    
+                    totalAmount += parseFloat(data.amount);
+                });
+            }
+
+            document.getElementById('adminTotalAmount').textContent = 'RM ' + totalAmount.toFixed(2);
+            document.getElementById('adminTotalCount').textContent = receiptsData.length;
+        }
+    </script>
+</body>
+</html>
