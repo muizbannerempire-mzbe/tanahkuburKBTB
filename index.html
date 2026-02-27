@@ -45,7 +45,7 @@
                 <p class="text-xs text-gray-500 mt-1">Sila masukkan kata laluan untuk akses.</p>
             </div>
             <input type="password" id="adminPassword" class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 mb-5 bg-gray-50 text-center text-lg tracking-widest" placeholder="••••••••">
-            <p class="text-[10px] text-center text-gray-400 mb-4 -mt-2">Petunjuk: admin123</p>
+            
             <div class="flex space-x-3">
                 <button onclick="closeAdminLogin()" class="w-1/2 py-3 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 font-semibold transition">Batal</button>
                 <button onclick="submitAdminLogin()" class="w-1/2 py-3 bg-green-700 text-white rounded-xl hover:bg-green-800 font-semibold shadow-md transition">Masuk</button>
@@ -532,7 +532,8 @@
 
         window.submitAdminLogin = function() {
             const pw = document.getElementById('adminPassword').value;
-            if (pw === "admin123") {
+            // KATA LALUAN ADMIN DIKEMASKINI KE: kubur123
+            if (pw === "kubur123") {
                 window.closeAdminLogin();
                 
                 document.getElementById('formSection').classList.add('hidden');
